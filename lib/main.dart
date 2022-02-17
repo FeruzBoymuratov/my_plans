@@ -1,14 +1,34 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:my_plans/pages/add_post_page.dart';
 import 'package:my_plans/pages/posts_page.dart';
 import 'package:my_plans/pages/sign_in_page.dart';
+import 'package:my_plans/pages/sign_up_page.dart';
+import 'package:my_plans/services/prefs_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
+
+  Widget _startPage(){
+    return StreamBuilder<User>(
+        builder: (BuildContext context, snapshot) {
+          if (snapshot.hasData) {
+            Prefs.saveUserId(snapshot.data!.uid);
+            return PostsPage();
+          }else {
+            Prefs.removeUserId();
+            return const SignInPage();
+          }
+        }
+    );
+  }
 
   // This widget is the root of your application.
   @override
@@ -27,7 +47,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.amber,
       ),
-      home: const AddPostPage(),
+      home: _startPage(),
       debugShowCheckedModeBanner: false,
       routes: {
         SignInPage.id:(context) => const SignInPage(),
